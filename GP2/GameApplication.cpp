@@ -21,6 +21,8 @@ CGameApplication::~CGameApplication(void)
 
 	if (m_pVertexBuffer)
 		m_pVertexBuffer->Release();
+	if(m_pVertexLayout)
+		m_pVertexLayout->Release();
 
 	if(m_pEffect)
 		m_pEffect->Release();
@@ -116,6 +118,13 @@ bool CGameApplication::initGame()
 	}
 
 	m_pD3D10Device->IASetInputLayout(m_pVertexLayout);
+
+	UINT stride = sizeof(Vertex);
+	UINT offset = 0;
+	m_pD3D10Device->IASetVertexBuffers(0,1,
+		&m_pVertexBuffer, &stride, &offset);
+
+	m_pD3D10Device->IASetPrimitiveTopology(D3D10_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 	return true;
 }
