@@ -10,6 +10,8 @@ CGameApplication::CGameApplication(void)
 	m_pWindow=NULL;
 	m_pD3D10Device=NULL;
 	m_pRenderTargetView=NULL;
+	m_pDepthStencilView=NULL;
+	m_pDepthStencilTexture=NULL;
 	m_pSwapChain=NULL;
 	m_pVertexBuffer=NULL;
 }
@@ -29,6 +31,10 @@ CGameApplication::~CGameApplication(void)
 
 	if (m_pRenderTargetView)
 		m_pRenderTargetView->Release();
+	if (m_pDepthStencilTexture)
+		m_pDepthStencilTexture->Release();
+	if (m_pDepthStencilView)
+		m_pDepthStencilView->Release();
 	if (m_pSwapChain)
 		m_pSwapChain->Release();
 	if (m_pD3D10Device)
@@ -64,7 +70,7 @@ bool CGameApplication::initGame()
 	dwShaderFlags |= D3D10_SHADER_DEBUG;
 #endif
 
-	if(FAILED(D3DX10CreateEffectFromFile(TEXT("ScreenSpace.fx"),
+	if(FAILED(D3DX10CreateEffectFromFile(TEXT("Transform.fx"),
 		NULL, NULL, "fx_4_0", dwShaderFlags, 0,
 		m_pD3D10Device, NULL, NULL, &m_pEffect,
 		NULL, NULL)))
@@ -86,9 +92,9 @@ bool CGameApplication::initGame()
 
 	Vertex vertices[]=
 	{
-		D3DXVECTOR3( 0.0f, 0.5f, 0.5f),
-		D3DXVECTOR3( 0.5f, -0.5f, 0.5f),
-		D3DXVECTOR3( -0.5f, -0.5f, 0.5f),
+		D3DXVECTOR3( 0.0f, 5.5f, 5.5f),
+		D3DXVECTOR3( 5.5f, -5.5f, 5.5f),
+		D3DXVECTOR3( -5.5f, -5.5f, 5.5f),
 	};
 
 	D3D10_SUBRESOURCE_DATA InitData;
@@ -126,6 +132,27 @@ bool CGameApplication::initGame()
 
 	m_pD3D10Device->IASetPrimitiveTopology(D3D10_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
+	D3DXVECTOR3 cameraPos(0.0f,0.0f,-10.0f);
+	D3DXVECTOR3 cameraLook(0.0f,0.0f,1.0f);
+	D3DXVECTOR3 cameraUp(0.0f,1.0f,0.0f);
+	D3DXMatrixLookAtLH(&m_matView,&cameraPos,&cameraLook,&cameraUp);
+
+	D3D10_VIEWPORT vp;
+	UINT numViewPorts=1;
+	m_pD3D10Device->RSGetViewports(&numViewPorts,&vp);
+
+	D3DXMatrixPerspectiveFovLH(&m_matProjection,(float)D3DX_PI *0.25f, vp.Width/(FLOAT)vp.Height,0.1f,100.0f);
+
+	m_pViewMatrixVariable=m_pEffect->GetVariableByName("matView")->AsMatrix();
+	m_pProjectionMatrixVariable=m_pEffect->GetVariableByName("matProjection")->AsMatrix();
+
+	m_pProjectionMatrixVariable->SetMatrix((float*)m_matProjection);
+
+	m_vecPosition=D3DXVECTOR3(0.0f,0.0f,0.0f);
+	m_vecScale=D3DXVECTOR3(1.0f,1.0f,1.0f);
+	m_vecRotation=D3DXVECTOR3(0.0f,0.0f,0.0f);
+	m_pWorldMatrixVariable=m_pEffect->GetVariableByName("matWorld")->AsMatrix();
+
 	return true;
 }
 
@@ -146,7 +173,10 @@ void CGameApplication::render()
 {
 	float ClearColor[4] = {0.0f, 0.125f, 0.3f, 1.0f };
 	m_pD3D10Device->ClearRenderTargetView( m_pRenderTargetView, ClearColor );
+	m_pD3D10Device->ClearDepthStencilView(m_pDepthStencilView,D3D10_CLEAR_DEPTH,1.0f,0);
 
+	m_pViewMatrixVariable->SetMatrix((float*)m_matView);
+	m_pWorldMatrixVariable->SetMatrix((float*)m_matWorld);
 	D3D10_TECHNIQUE_DESC techDesc;
 	m_pTechnique->GetDesc(&techDesc);
 	for(UINT p = 0; p < techDesc.Passes; ++p)
@@ -160,6 +190,14 @@ void CGameApplication::render()
 
 void CGameApplication::update()
 {
+	D3DXMatrixScaling(&m_matScale,m_vecScale.x,m_vecScale.y,m_vecScale.z);
+
+	D3DXMatrixRotationYawPitchRoll(&m_matRotation,m_vecRotation.y,m_vecRotation.x,m_vecRotation.z);
+
+	D3DXMatrixTranslation(&m_matTranslation,m_vecPosition.x,m_vecPosition.x,m_vecRotation.z);
+
+	D3DXMatrixMultiply(&m_matWorld,&m_matScale,&m_matRotation);
+	D3DXMatrixMultiply(&m_matWorld,&m_matWorld,&m_matTranslation);
 }
 
 bool CGameApplication::initGraphics()
@@ -217,9 +255,33 @@ bool CGameApplication::initGraphics()
 	}
 	pBackBuffer->Release();
 
+	D3D10_TEXTURE2D_DESC descDepth;
+	descDepth.Width = width;
+	descDepth.Height = height;
+	descDepth.MipLevels = 1;
+	descDepth.ArraySize = 1;
+	descDepth.Format = DXGI_FORMAT_D32_FLOAT;
+	descDepth.SampleDesc.Count = 1;
+	descDepth.SampleDesc.Quality = 0;
+	descDepth.Usage = D3D10_USAGE_DEFAULT;
+	descDepth.BindFlags = D3D10_BIND_DEPTH_STENCIL;
+	descDepth.CPUAccessFlags = 0;
+	descDepth.MiscFlags = 0;
+
+	if(FAILED(m_pD3D10Device->CreateTexture2D(&descDepth,NULL,&m_pDepthStencilTexture)))
+		return false;
+
+	D3D10_DEPTH_STENCIL_VIEW_DESC descDSV;
+	descDSV.Format = descDepth.Format;
+	descDSV.ViewDimension = D3D10_DSV_DIMENSION_TEXTURE2D;
+	descDSV.Texture2D.MipSlice = 0;
+
+	if(FAILED(m_pD3D10Device->CreateDepthStencilView(m_pDepthStencilTexture,&descDSV,&m_pDepthStencilView)))
+		return false;
+
 	m_pD3D10Device->OMSetRenderTargets(1,
 		&m_pRenderTargetView,
-		NULL);
+		m_pDepthStencilView);
 
 	D3D10_VIEWPORT vp;
 	vp.Width = width;
