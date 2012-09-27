@@ -70,7 +70,7 @@ bool CGameApplication::initGame()
 	dwShaderFlags |= D3D10_SHADER_DEBUG;
 #endif
 
-	if(FAILED(D3DX10CreateEffectFromFile(TEXT("Transform.fx"),
+	if(FAILED(D3DX10CreateEffectFromFile(TEXT("Transform.fx"), // effect file that is loaded in
 		NULL, NULL, "fx_4_0", dwShaderFlags, 0,
 		m_pD3D10Device, NULL, NULL, &m_pEffect,
 		NULL, NULL)))
@@ -83,9 +83,9 @@ bool CGameApplication::initGame()
 
 	m_pTechnique=m_pEffect->GetTechniqueByName("Render");
 
-	D3D10_BUFFER_DESC bd;
+	D3D10_BUFFER_DESC bd; // Name of the vertex buffer
 	bd.Usage = D3D10_USAGE_DEFAULT;
-	bd.ByteWidth = sizeof( Vertex ) * 6;
+	bd.ByteWidth = sizeof( Vertex ) * 6; // Size of the vertex buffer
 	bd.BindFlags = D3D10_BIND_VERTEX_BUFFER;
 	bd.CPUAccessFlags = 0;
 	bd.MiscFlags = 0;
@@ -93,7 +93,7 @@ bool CGameApplication::initGame()
 	Vertex vertices[]=
 	{
 		D3DXVECTOR3( -0.5f, 0.5f, 0.5f), //Pos of the first vertex
-		D3DXVECTOR3( 0.5f, -0.5f, 0.5f), //Pos of the second vertex
+		D3DXVECTOR3( 0.5f, -0.5f, 0.5f), //Pos of the second vertex...
 		D3DXVECTOR3( -0.5f, -0.5f, 0.5f),
 		D3DXVECTOR3( 0.5f, 0.5f, 0.5f),
 
@@ -102,7 +102,7 @@ bool CGameApplication::initGame()
 	D3D10_SUBRESOURCE_DATA InitData;
 	InitData.pSysMem = vertices;
 
-	D3D10_BUFFER_DESC IndexBufferDesc;
+	D3D10_BUFFER_DESC IndexBufferDesc; // Name of the index buffer
 	IndexBufferDesc.Usage = D3D10_USAGE_DEFAULT;
 	IndexBufferDesc.ByteWidth = sizeof(int) * 6; // Size of the index buffer
 	IndexBufferDesc.BindFlags = D3D10_BIND_INDEX_BUFFER;
