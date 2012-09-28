@@ -26,6 +26,9 @@ CGameApplication::~CGameApplication(void)
 	if(m_pVertexLayout)
 		m_pVertexLayout->Release();
 
+	if(m_pIndexBuffer)
+		m_pIndexBuffer->Release();
+
 	if(m_pEffect)
 		m_pEffect->Release();
 
@@ -85,7 +88,7 @@ bool CGameApplication::initGame()
 
 	D3D10_BUFFER_DESC bd; // Name of the vertex buffer
 	bd.Usage = D3D10_USAGE_DEFAULT;
-	bd.ByteWidth = sizeof( Vertex ) * 6; // Size of the vertex buffer
+	bd.ByteWidth = sizeof( Vertex ) * 8; // Size of the vertex buffer
 	bd.BindFlags = D3D10_BIND_VERTEX_BUFFER;
 	bd.CPUAccessFlags = 0;
 	bd.MiscFlags = 0;
@@ -96,6 +99,10 @@ bool CGameApplication::initGame()
 		D3DXVECTOR3( 0.5f, -0.5f, 0.5f), //Pos of the second vertex...
 		D3DXVECTOR3( -0.5f, -0.5f, 0.5f),
 		D3DXVECTOR3( 0.5f, 0.5f, 0.5f),
+		D3DXVECTOR3( -0.5f, 0.5f, -0.5f), //Pos of the first vertex
+		D3DXVECTOR3( 0.5f, -0.5f, -0.5f), //Pos of the second vertex...
+		D3DXVECTOR3( -0.5f, -0.5f, -0.5f),
+		D3DXVECTOR3( 0.5f, 0.5f, -0.5f),
 
 	};
 
@@ -104,12 +111,19 @@ bool CGameApplication::initGame()
 
 	D3D10_BUFFER_DESC IndexBufferDesc; // Name of the index buffer
 	IndexBufferDesc.Usage = D3D10_USAGE_DEFAULT;
-	IndexBufferDesc.ByteWidth = sizeof(int) * 6; // Size of the index buffer
+	IndexBufferDesc.ByteWidth = sizeof(int) * 36; // Size of the index buffer
 	IndexBufferDesc.BindFlags = D3D10_BIND_INDEX_BUFFER;
 	IndexBufferDesc.CPUAccessFlags = 0;
 	IndexBufferDesc.MiscFlags = 0;
 
-	int indices[]={0,1,2,0,1,3}; //
+	int indices[]={
+		//0,1,2, 0,1,3, //front face
+		0,3,7, 0,4,7, //top face
+		0,2,6, 0,4,6, //right face
+		//6,5,7, 6,4,7, //back face
+		2,6,5, 2,1,5, //bottom face
+		1,3,7, 1,5,7, //left face
+	}; //These are the pointers pointing to the vertices for the cube
 
 	D3D10_SUBRESOURCE_DATA IndexBufferInitialData;
 	IndexBufferInitialData.pSysMem = indices;
@@ -203,7 +217,7 @@ void CGameApplication::render()
 	{
 		m_pTechnique->GetPassByIndex(p)->Apply(0);
 		//m_pD3D10Device->Draw(4,0);
-		m_pD3D10Device->DrawIndexed(6,0,0);
+		m_pD3D10Device->DrawIndexed(36,0,0);
 	}
 
 	m_pSwapChain->Present (0,0);
@@ -212,10 +226,12 @@ void CGameApplication::render()
 void CGameApplication::update()
 {
 	D3DXMatrixScaling(&m_matScale,m_vecScale.x,m_vecScale.y,m_vecScale.z);
-
+	m_vecRotation.y+=0.0001f;
+	m_vecRotation.x+=0.0002f;
+	//m_vecRotation.z-=0.0001f;
 	D3DXMatrixRotationYawPitchRoll(&m_matRotation,m_vecRotation.y,m_vecRotation.x,m_vecRotation.z);
 
-	D3DXMatrixTranslation(&m_matTranslation,m_vecPosition.x,m_vecPosition.x,m_vecRotation.z);
+	D3DXMatrixTranslation(&m_matTranslation,m_vecPosition.x,m_vecPosition.x,m_vecPosition.z);
 
 	D3DXMatrixMultiply(&m_matWorld,&m_matScale,&m_matRotation);
 	D3DXMatrixMultiply(&m_matWorld,&m_matWorld,&m_matTranslation);
