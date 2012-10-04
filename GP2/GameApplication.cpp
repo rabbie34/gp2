@@ -3,6 +3,8 @@
 struct Vertex
 {
 	D3DXVECTOR3 Pos;
+	D3DXCOLOR colour;
+	D3DXVECTOR2 texCoords;
 };
 
 CGameApplication::CGameApplication(void)
@@ -14,6 +16,7 @@ CGameApplication::CGameApplication(void)
 	m_pDepthStencilTexture=NULL;
 	m_pSwapChain=NULL;
 	m_pVertexBuffer=NULL;
+	m_pDiffuseTexture=NULL;
 }
 
 CGameApplication::~CGameApplication(void)
@@ -42,6 +45,9 @@ CGameApplication::~CGameApplication(void)
 		m_pSwapChain->Release();
 	if (m_pD3D10Device)
 		m_pD3D10Device->Release();
+	if(m_pDiffuseTexture)
+		m_pDiffuseTexture->Release();
+
 
 	if(m_pWindow)
 	{
@@ -68,12 +74,15 @@ bool CGameApplication::init()
 bool CGameApplication::initGame()
 {
 
+	size=0.0002f;
+	timer=0;
+
 	DWORD dwShaderFlags = D3D10_SHADER_ENABLE_STRICTNESS;
 #if defined(DEBUG) || defined( _DEBUG)
 	dwShaderFlags |= D3D10_SHADER_DEBUG;
 #endif
 
-	if(FAILED(D3DX10CreateEffectFromFile(TEXT("Transform.fx"), // effect file that is loaded in
+	if(FAILED(D3DX10CreateEffectFromFile(TEXT("Texture.fx"), // effect file that is loaded in
 		NULL, NULL, "fx_4_0", dwShaderFlags, 0,
 		m_pD3D10Device, NULL, NULL, &m_pEffect,
 		NULL, NULL)))
@@ -83,6 +92,8 @@ bool CGameApplication::initGame()
 			MB_OK);
 		return false;
 	}
+
+	m_pDiffuseTextureVariable=m_pEffect->GetVariableByName("diffuseTexture")->AsShaderResource();
 
 	m_pTechnique=m_pEffect->GetTechniqueByName("Render");
 
@@ -95,14 +106,14 @@ bool CGameApplication::initGame()
 
 	Vertex vertices[]=
 	{
-		D3DXVECTOR3( -0.5f, 0.5f, 0.5f), //Pos of the first vertex
-		D3DXVECTOR3( 0.5f, -0.5f, 0.5f), //Pos of the second vertex...
-		D3DXVECTOR3( -0.5f, -0.5f, 0.5f),
-		D3DXVECTOR3( 0.5f, 0.5f, 0.5f),
-		D3DXVECTOR3( -0.5f, 0.5f, -0.5f), //Pos of the first vertex
-		D3DXVECTOR3( 0.5f, -0.5f, -0.5f), //Pos of the second vertex...
-		D3DXVECTOR3( -0.5f, -0.5f, -0.5f),
-		D3DXVECTOR3( 0.5f, 0.5f, -0.5f),
+		{D3DXVECTOR3( -0.5f, 0.5f, 0.5f),D3DXCOLOR(0.5f,1.0f,1.0f,1.0f),D3DXVECTOR2(0.0f,0.0f)}, //Pos of the first vertex along with its color along with the texture coords
+		{D3DXVECTOR3( 0.5f, -0.5f, 0.5f),D3DXCOLOR(1.0f,0.5f,1.0f,1.0f),D3DXVECTOR2(3.0f,3.0f)}, //Pos of the second vertex...
+		{D3DXVECTOR3( -0.5f, -0.5f, 0.5f),D3DXCOLOR(1.0f,1.0f,0.5f,1.0f),D3DXVECTOR2(0.0f,3.0f)},
+		{D3DXVECTOR3( 0.5f, 0.5f, 0.5f),D3DXCOLOR(0.5f,0.5f,1.0f,1.0f),D3DXVECTOR2(3.0f,0.0f)},
+		{D3DXVECTOR3( -0.5f, 0.5f, -0.5f),D3DXCOLOR(1.0f,0.5f,0.5f,1.0f),D3DXVECTOR2(0.0f,0.0f)},
+		{D3DXVECTOR3( 0.5f, -0.5f, -0.5f),D3DXCOLOR(0.5f,1.0f,0.5f,1.0f),D3DXVECTOR2(3.0f,3.0f)}, 
+		{D3DXVECTOR3( -0.5f, -0.5f, -0.5f),D3DXCOLOR(0.5f,0.5f,0.5f,1.0f),D3DXVECTOR2(0.0f,3.0f)},
+		{D3DXVECTOR3( 0.5f, 0.5f, -0.5f),D3DXCOLOR(0.0f,0.0f,0.0f,1.0f),D3DXVECTOR2(3.0f,0.0f)},
 
 	};
 
@@ -117,10 +128,10 @@ bool CGameApplication::initGame()
 	IndexBufferDesc.MiscFlags = 0;
 
 	int indices[]={
-		//0,1,2, 0,1,3, //front face
+		0,1,2, 0,1,3, //front face
 		0,3,7, 0,4,7, //top face
 		0,2,6, 0,4,6, //right face
-		//6,5,7, 6,4,7, //back face
+		6,5,7, 6,4,7, //back face
 		2,6,5, 2,1,5, //bottom face
 		1,3,7, 1,5,7, //left face
 	}; //These are the pointers pointing to the vertices for the cube
@@ -139,6 +150,12 @@ bool CGameApplication::initGame()
 	D3D10_INPUT_ELEMENT_DESC layout[] =
 	{
 		{"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0,
+		D3D10_INPUT_PER_VERTEX_DATA,0},
+
+		{"COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 12, //The 12 denotes which position in memory that this is stored, since the position takes 12 bits (3 floats, 4 bits each)
+		D3D10_INPUT_PER_VERTEX_DATA,0},
+
+		{"TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 28,
 		D3D10_INPUT_PER_VERTEX_DATA, 0},
 	};
 
@@ -187,6 +204,13 @@ bool CGameApplication::initGame()
 	m_vecRotation=D3DXVECTOR3(0.0f,0.0f,0.0f);
 	m_pWorldMatrixVariable=m_pEffect->GetVariableByName("matWorld")->AsMatrix();
 
+	if (FAILED(D3DX10CreateShaderResourceViewFromFile(m_pD3D10Device,
+			TEXT("face.png"), NULL, NULL, &m_pDiffuseTexture, NULL)))
+	{
+		MessageBox(NULL, TEXT("Can't load Texture"),TEXT("Error"),MB_OK);
+		return false;
+	}
+
 	return true;
 }
 
@@ -213,6 +237,9 @@ void CGameApplication::render()
 	m_pWorldMatrixVariable->SetMatrix((float*)m_matWorld);
 	D3D10_TECHNIQUE_DESC techDesc;
 	m_pTechnique->GetDesc(&techDesc);
+
+	m_pDiffuseTextureVariable->SetResource(m_pDiffuseTexture);
+
 	for(UINT p = 0; p < techDesc.Passes; ++p)
 	{
 		m_pTechnique->GetPassByIndex(p)->Apply(0);
@@ -225,10 +252,23 @@ void CGameApplication::render()
 
 void CGameApplication::update()
 {
+	timer++;
+	if(timer>10000)
+	{
+		timer=0;
+		size=-size;
+	}
+
+	m_vecScale.x+=size;
+	m_vecScale.y+=size;
+	m_vecScale.z+=size;
+
+	//m_vecScale=D3DXVECTOR3(4,4,4);
+
 	D3DXMatrixScaling(&m_matScale,m_vecScale.x,m_vecScale.y,m_vecScale.z);
 	m_vecRotation.y+=0.0001f;
-	m_vecRotation.x+=0.0002f;
-	//m_vecRotation.z-=0.0001f;
+	m_vecRotation.x+=0.00002f;
+	m_vecRotation.z-=0.0001f;
 	D3DXMatrixRotationYawPitchRoll(&m_matRotation,m_vecRotation.y,m_vecRotation.x,m_vecRotation.z);
 
 	D3DXMatrixTranslation(&m_matTranslation,m_vecPosition.x,m_vecPosition.x,m_vecPosition.z);

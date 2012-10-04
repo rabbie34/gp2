@@ -17,6 +17,9 @@ private:
 	bool initGraphics();
 	bool initWindow();
 
+	float size;
+	int timer;
+
 	void render();
 	void update();
 private:
@@ -39,6 +42,8 @@ private:
 	ID3D10EffectMatrixVariable* m_pWorldMatrixVariable;
 	ID3D10EffectMatrixVariable* m_pViewMatrixVariable;
 	ID3D10EffectMatrixVariable* m_pProjectionMatrixVariable;
+	ID3D10EffectShaderResourceVariable* m_pDiffuseTextureVariable;
+	ID3D10ShaderResourceView* m_pDiffuseTexture;
 
 	D3DXMATRIX m_matWorld;
 	D3DXMATRIX m_matScale;
