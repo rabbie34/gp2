@@ -37,7 +37,7 @@ CGeometryComponent * CModelLoader::createCube(ID3D10Device *pDevice,float width,
 					4,5,6,4,7,5, //back
 					0,6,4,0,2,6, //left
 					3,5,7,3,1,5, //right
-					0,4,3,0,3,7, //top
+					0,4,3,4,3,7, //top
 					2,6,1,6,5,1	 //bottom
 					};
 
