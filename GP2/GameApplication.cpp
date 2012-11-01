@@ -62,7 +62,7 @@ bool CGameApplication::initGame()
     // Set primitive topology, how are we going to interpet the vertices in the vertex buffer - BMD
     //http://msdn.microsoft.com/en-us/library/bb173590%28v=VS.85%29.aspx - BMD
     m_pD3D10Device->IASetPrimitiveTopology( D3D10_PRIMITIVE_TOPOLOGY_TRIANGLELIST );	
-
+	/*
 	//Create Game Object
 	CGameObject *pTestGameObject=new CGameObject();
 	//Set the name
@@ -83,6 +83,30 @@ bool CGameApplication::initGame()
 	pTestGameObject->addComponent(pMesh);
 	//add the game object
 	m_pGameObjectManager->addGameObject(pTestGameObject);
+	*/
+	//##################################### 
+	//CREATION OF THE HUMANOID OBJECT
+
+	CGameObject *pHumanGameObject = new CGameObject();
+	pHumanGameObject->setName("Human");
+	pHumanGameObject->getTransform()->setPosition(0.0f,-5.0f,10.0f);
+	//pHumanGameObject->getTransform()->setScale(0.05f,0.05f,0.05f);
+	pHumanGameObject->getTransform()->setRotation(0.0f,D3DXToDegree(0),0.0f);
+	CMaterialComponent *pHumanMaterial = new CMaterialComponent();
+	pHumanMaterial->SetRenderingDevice(m_pD3D10Device);
+
+	pHumanMaterial->loadDiffuseTexture("armoredrecon_diff.png");
+	
+	pHumanMaterial->setEffectFilename("DirectionalLight.fx");
+	//pHumanMaterial->setAmbientMaterialColour(D3DXCOLOR(0.937f,0.816f,0.812f,1.0f));
+	pHumanMaterial->setAmbientMaterialColour(D3DXCOLOR(0.5f,0.5f,0.5f,1.0f));
+	pHumanGameObject->addComponent(pHumanMaterial);
+	CMeshComponent *pHumanMesh=modelloader.loadModelFromFile(m_pD3D10Device,"armoredrecon.fbx");
+	pHumanMesh->SetRenderingDevice(m_pD3D10Device);
+	pHumanGameObject->addComponent(pHumanMesh);
+
+	m_pGameObjectManager->addGameObject(pHumanGameObject);
+	//#####################################
 
 	CGameObject *pCameraGameObject=new CGameObject();
 	pCameraGameObject->getTransform()->setPosition(0.0f,0.0f,-5.0f);
@@ -211,26 +235,33 @@ void CGameApplication::update()
 	if (CInput::getInstance().getKeyboard()->isKeyDown((int)'W'))
 	{
 		//play sound
-		CTransformComponent * pTransform=m_pGameObjectManager->findGameObject("Test")->getTransform();
+		CTransformComponent * pTransform=m_pGameObjectManager->findGameObject("Human")->getTransform();
 		pTransform->rotate(m_Timer.getElapsedTime(),0.0f,0.0f);
 	}
 	else if (CInput::getInstance().getKeyboard()->isKeyDown((int)'S'))
 	{
 		//play sound
-		CTransformComponent * pTransform=m_pGameObjectManager->findGameObject("Test")->getTransform();
+		CTransformComponent * pTransform=m_pGameObjectManager->findGameObject("Human")->getTransform();
 		pTransform->rotate(m_Timer.getElapsedTime()*-1,0.0f,0.0f);
 	}
 	if (CInput::getInstance().getKeyboard()->isKeyDown((int)'A'))
 	{
 		//play sound
-		CTransformComponent * pTransform=m_pGameObjectManager->findGameObject("Test")->getTransform();
+		CTransformComponent * pTransform=m_pGameObjectManager->findGameObject("Human")->getTransform();
 		pTransform->rotate(0.0f,m_Timer.getElapsedTime(),0.0f);
 	}
 	else if (CInput::getInstance().getKeyboard()->isKeyDown((int)'D'))
 	{
 		//play sound
-		CTransformComponent * pTransform=m_pGameObjectManager->findGameObject("Test")->getTransform();
+		CTransformComponent * pTransform=m_pGameObjectManager->findGameObject("Human")->getTransform();
 		pTransform->rotate(0.0f,m_Timer.getElapsedTime()*-1,0.0f);
+	}
+	if (CInput::getInstance().getKeyboard()->isKeyDown(VK_UP))
+	{
+		CTransformComponent * pTransform=m_pGameObjectManager->findGameObject("Human")->getTransform();
+		float yaw = pTransform->getRotation().y;
+		float pitch = pTransform->getRotation().x;
+		pTransform->translate(sin(yaw)*m_Timer.getElapsedTime()/100,0.0,cos(yaw)/100);
 	}
 	m_pGameObjectManager->update(m_Timer.getElapsedTime());
 

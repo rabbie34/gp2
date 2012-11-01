@@ -124,11 +124,14 @@
     <None Include="armoredrecon_Height.png" />
     <None Include="armoredrecon_N.png" />
     <None Include="armoredrecon_spec.png" />
+    <None Include="Bumpmapping.fx" />
     <None Include="diffuse.fx" />
+    <None Include="DirectionalLight.fx" />
     <None Include="face.PNG" />
     <None Include="fbxsdk-2013.1d.dll" />
     <None Include="fmodex.dll" />
     <None Include="humanoid.fbx" />
+    <None Include="Parallax.fx" />
     <None Include="ScreenSpace.fx" />
     <None Include="Specular.fx" />
     <None Include="Texture.fx" />

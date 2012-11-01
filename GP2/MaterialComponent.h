@@ -57,7 +57,10 @@ public:
 
 	void setTextures()
 	{
+		if(m_pDiffuseTexture!=NULL)
+			m_pUseDiffuseTextureVariable->SetBool(TRUE);
 		m_pDiffuseTextureVariable->SetResource(m_pDiffuseTexture);
+		
 	};
 	//set the world matrix
 	void setWorldMatrix(float * pMatrix)
@@ -167,6 +170,7 @@ protected:
 	ID3D10EffectVectorVariable *m_pDiffuseMaterialVariable;
 	ID3D10EffectVectorVariable *m_pSpecularMaterialVariable;
 	ID3D10EffectScalarVariable *m_pSpecularPowerVariable;
+	ID3D10EffectScalarVariable *m_pUseDiffuseTextureVariable;
 	//Camera
 	ID3D10EffectVectorVariable *m_pCameraPositionVariable;
 
