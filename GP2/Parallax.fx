@@ -74,8 +74,8 @@ float bias=0.01;
 SamplerState wrapSampler
 {
     Filter = MIN_MAG_MIP_LINEAR;
-    AddressU = Clamp;
-    AddressV = Clamp;
+    AddressU = Wrap;
+    AddressV = Wrap;
 };
 
 struct VS_INPUT
@@ -83,7 +83,7 @@ struct VS_INPUT
 	float4 pos:POSITION;
 	float3 normal:NORMAL;
 	float3 tangent:TANGENT;
-	float2 texCoord:TEXCOORD0;
+	float2 texCoord:TEXCOORD;
 };
 
 struct PS_INPUT
@@ -92,7 +92,7 @@ struct PS_INPUT
 	float3 normal:NORMAL;
 	float3 cameraDirection:VIEWDIR;
 	float3 lightDir:LIGHTDIR;
-	float2 texCoord:TEXCOORD0;
+	float2 texCoord:TEXCOORD;
 };
 
 PS_INPUT VS(VS_INPUT input)
