@@ -61,20 +61,36 @@ public:
 
 	void loadHeightTexture(const string& filename);
 
+	void loadEnvTexture(const string& filename);
+
 	void setTextures()
 	{
 		if(m_pDiffuseTexture!=NULL)
+		{
 			m_pUseDiffuseTextureVariable->SetBool(TRUE);
+			m_pDiffuseTextureVariable->SetResource(m_pDiffuseTexture);
+		}
 		if(m_pSpecularTexture!=NULL)
+		{
 			m_pUseSpecularTextureVariable->SetBool(TRUE);
+			m_pSpecularTextureVariable->SetResource(m_pSpecularTexture);
+		}
 		if(m_pBumpTexture!=NULL)
+		{
 			m_pUseBumpTextureVariable->SetBool(TRUE);
+			m_pBumpTextureVariable->SetResource(m_pBumpTexture);
+		}
 		if(m_pHeightTexture!=NULL)
+		{
 			m_pUseHeightTextureVariable->SetBool(TRUE);
-		m_pDiffuseTextureVariable->SetResource(m_pDiffuseTexture);
-		m_pSpecularTextureVariable->SetResource(m_pSpecularTexture);
-		m_pBumpTextureVariable->SetResource(m_pBumpTexture);
-		m_pHeightTextureVariable->SetResource(m_pHeightTexture);
+			m_pHeightTextureVariable->SetResource(m_pHeightTexture);
+		}
+		if(m_pEnvTexture!=NULL)
+		{
+			m_pUseEnvTextureVariable->SetBool(TRUE);
+			m_pEnvTextureVariable->SetResource(m_pEnvTexture);
+		}
+		
 		
 	};
 	//set the world matrix
@@ -177,6 +193,7 @@ protected:
 	ID3D10EffectShaderResourceVariable *m_pSpecularTextureVariable;
 	ID3D10EffectShaderResourceVariable *m_pBumpTextureVariable;
 	ID3D10EffectShaderResourceVariable *m_pHeightTextureVariable;
+	ID3D10EffectShaderResourceVariable *m_pEnvTextureVariable;
 	//Light
 	ID3D10EffectVectorVariable *m_pAmbientLightColourVariable;
 	ID3D10EffectVectorVariable *m_pDiffuseLightColourVariable;
@@ -192,6 +209,7 @@ protected:
 	ID3D10EffectScalarVariable *m_pUseSpecularTextureVariable;
 	ID3D10EffectScalarVariable *m_pUseBumpTextureVariable;
 	ID3D10EffectScalarVariable *m_pUseHeightTextureVariable;
+	ID3D10EffectScalarVariable *m_pUseEnvTextureVariable;
 	//Camera
 	ID3D10EffectVectorVariable *m_pCameraPositionVariable;
 
@@ -206,4 +224,5 @@ protected:
 	ID3D10ShaderResourceView *m_pSpecularTexture;
 	ID3D10ShaderResourceView *m_pBumpTexture;
 	ID3D10ShaderResourceView *m_pHeightTexture;
+	ID3D10ShaderResourceView *m_pEnvTexture;
 };

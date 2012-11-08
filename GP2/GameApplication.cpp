@@ -99,6 +99,7 @@ bool CGameApplication::initGame()
 	pHumanMaterial->loadSpecularTexture("armoredrecon_spec.png");
 	pHumanMaterial->loadBumpTexture("armoredrecon_N.png");
 	pHumanMaterial->loadHeightTexture("armoredrecon_Height.png");
+	//pHumanMaterial->loadEnvTexture("Mars.dds");
 	
 	pHumanMaterial->setEffectFilename("Parallax.fx");
 	//pHumanMaterial->setAmbientMaterialColour(D3DXCOLOR(0.937f,0.816f,0.812f,1.0f));
@@ -267,7 +268,8 @@ void CGameApplication::update()
 		CTransformComponent * pTransform=m_pGameObjectManager->findGameObject("Human")->getTransform();
 		float yaw = pTransform->getRotation().y;
 		float pitch = pTransform->getRotation().x;
-		pTransform->translate( (sin(yaw) * cos(pitch)) *timePassed*speed , -sin(pitch) *timePassed*speed , (cos(yaw) * cos(pitch)) *timePassed*speed);
+		float roll = pTransform->getRotation().z;
+		pTransform->translate( sin(yaw) * cos(pitch) *timePassed*speed , -sin(pitch) *timePassed*speed , cos(yaw) * cos(pitch) *timePassed*speed);
 	}
 	m_pGameObjectManager->update(m_Timer.getElapsedTime());
 
@@ -434,7 +436,7 @@ bool CGameApplication::initGraphics()
 bool CGameApplication::initWindow()
 {
 	m_pWindow=new CWin32Window();
-	if (!m_pWindow->init(TEXT("Games Programming"),800,640,false))
+	if (!m_pWindow->init(TEXT("Games Programming"),800,800,false))
 		return false;
 	return true;
 }

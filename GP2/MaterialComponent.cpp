@@ -11,6 +11,7 @@ CMaterialComponent::CMaterialComponent()
 	m_pSpecularTexture=NULL;
 	m_pBumpTexture=NULL;
 	m_pHeightTexture=NULL;
+	m_pEnvTexture=NULL;
 	m_EffectName="";
 	m_TechniqueName="Render";
 	ZeroMemory(&m_TechniqueDesc,sizeof(D3D10_TECHNIQUE_DESC));
@@ -44,6 +45,11 @@ CMaterialComponent::~CMaterialComponent()
 	{
 		m_pHeightTexture->Release();
 		m_pHeightTexture=NULL;
+	}
+	if (m_pEnvTexture)
+	{
+		m_pEnvTexture->Release();
+		m_pEnvTexture=NULL;
 	}
 	//vertex layout
 	if (m_pVertexLayout)
@@ -162,6 +168,15 @@ void CMaterialComponent::loadHeightTexture(const string& filename)
 	}
 }
 
+void CMaterialComponent::loadEnvTexture(const string& filename)
+{
+	if (FAILED(D3DX10CreateShaderResourceViewFromFileA(m_pD3D10Device,
+		filename.c_str(), NULL, NULL,&m_pEnvTexture , NULL)))
+	{
+		OutputDebugStringA("Can't load Texture");
+	}
+}
+
 //init
 void CMaterialComponent::init()
 {
@@ -189,6 +204,7 @@ void CMaterialComponent::init()
 	m_pSpecularTextureVariable=m_pEffect->GetVariableByName("specularMap")->AsShaderResource();
 	m_pBumpTextureVariable=m_pEffect->GetVariableByName("bumpMap")->AsShaderResource();
 	m_pHeightTextureVariable=m_pEffect->GetVariableByName("heightMap")->AsShaderResource();
+	m_pEnvTextureVariable=m_pEffect->GetVariableByName("envMap")->AsShaderResource();
 
 	//lights
 	m_pAmbientLightColourVariable=m_pEffect->GetVariableByName("ambientLightColour")->AsVector();
@@ -205,6 +221,7 @@ void CMaterialComponent::init()
 	m_pUseSpecularTextureVariable=m_pEffect->GetVariableByName("useSpecularTexture")->AsScalar();
 	m_pUseBumpTextureVariable=m_pEffect->GetVariableByName("useBumpTexture")->AsScalar();
 	m_pUseHeightTextureVariable=m_pEffect->GetVariableByName("useHeightTexture")->AsScalar();
+	m_pUseEnvTextureVariable=m_pEffect->GetVariableByName("useEnvTexture")->AsScalar();
 
 	//Camera
 	m_pCameraPositionVariable=m_pEffect->GetVariableByName("cameraPosition")->AsVector();

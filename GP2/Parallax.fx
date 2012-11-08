@@ -68,8 +68,8 @@ bool useHeightTexture
 string UIName="Use Parrallax";
 > = false;
 
-float scale=0.05;
-float bias=0.01;
+float scale=0.0005;
+float bias=0.00001;
 
 SamplerState wrapSampler
 {
